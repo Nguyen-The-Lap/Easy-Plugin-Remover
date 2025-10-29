@@ -2,7 +2,10 @@ import os
 import sys
 import subprocess
 import shutil
+import time
+import stat
 from pathlib import Path
+import errno
 
 def install_package(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
@@ -27,16 +30,34 @@ def create_exe():
     for directory in [build_dir, dist_dir]:
         if directory.exists():
             print(f"Removing existing {directory} directory...")
-            shutil.rmtree(directory)
+            # Function to handle read-only files
+            def on_rm_error(func, path, exc_info):
+                # Change permissions and try again
+                os.chmod(path, stat.S_IWRITE)
+                try:
+                    os.unlink(path)
+                except Exception as e:
+                    print(f"Warning: Could not remove {path}: {e}")
+                    return
+            
+            try:
+                shutil.rmtree(directory, onerror=on_rm_error)
+                # Give Windows a moment to release file handles
+                time.sleep(1)
+            except Exception as e:
+                print(f"Warning: Could not remove {directory}: {e}")
+                print("Please make sure the application is not running and try again.")
+                return False
     
     # Build the executable
     print("Creating executable...")
     cmd = [
-        'pyinstaller',
+        sys.executable,
+        '-m', 'PyInstaller',
         '--name=Easy',
         '--onefile',
         '--windowed',
-        '--icon=NONE',  # You can replace NONE with path to an .ico file if you have one
+        f'--icon={current_dir}/icon.ico',
         '--clean',
         '--noconfirm',
         '--add-data', f'{script_path};.',
@@ -53,7 +74,15 @@ def create_exe():
         if run == 'y':
             exe_path = dist_dir / 'Easy.exe'
             print(f"Running {exe_path}...")
-            subprocess.Popen([exe_path])
+            try:
+                # Use start command to run in a new window
+                if os.name == 'nt':  # Windows
+                    os.startfile(exe_path)
+                else:  # macOS and Linux
+                    subprocess.Popen([str(exe_path)])
+            except Exception as e:
+                print(f"Error running executable: {e}")
+                print("You can try running it manually from:", exe_path)
             
     except subprocess.CalledProcessError as e:
         print(f"Error during build: {e}")
