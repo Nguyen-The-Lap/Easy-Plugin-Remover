@@ -84,8 +84,37 @@ class FLPluginRemover:
     def __init__(self, root):
         self.root = root
         self.root.title("Easy")
+<<<<<<< HEAD
         self.root.geometry("800x600")
         self.root.minsize(800, 600)
+=======
+        self.root.geometry("900x700")  # Slightly larger default window
+        self.root.minsize(900, 700)
+        
+        # Set window icon
+        try:
+            self.root.iconbitmap('icon.ico')  # For Windows
+        except:
+            try:
+                # Try alternative method if the above fails
+                img = tk.PhotoImage(file='icon.ico')
+                self.root.tk.call('wm', 'iconphoto', self.root._w, img)
+            except:
+                pass  # Icon setting is optional, continue if it fails
+        
+        # Set default font for the application
+        default_font = ('Segoe UI', 9)  # Windows system font
+        self.root.option_add('*Font', default_font)
+        
+        # Configure ttk style
+        style = ttk.Style()
+        style.configure('.', font=default_font)
+        style.configure('TButton', font=default_font)
+        style.configure('TLabel', font=default_font)
+        style.configure('TEntry', font=default_font)
+        style.configure('Treeview', font=default_font, rowheight=25)
+        style.configure('Treeview.Heading', font=('Segoe UI', 9, 'bold'))
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
         
         # Common plugin directories for all plugin formats
         self.plugin_dirs = [
@@ -169,9 +198,54 @@ class FLPluginRemover:
             command=self.scan_plugins
         ).pack(side=tk.LEFT, padx=5)
         
+<<<<<<< HEAD
         # Plugin list
         self.tree_frame = ttk.Frame(main_frame)
         self.tree_frame.pack(fill=tk.BOTH, expand=True, pady=10)
+=======
+        # Search and filter frame
+        search_frame = ttk.Frame(main_frame)
+        search_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        # Left side - Search
+        search_left = ttk.Frame(search_frame)
+        search_left.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        ttk.Label(search_left, text="Search:").pack(side=tk.LEFT, padx=(0, 5))
+        self.search_var = tk.StringVar()
+        self.search_entry = ttk.Entry(search_left, textvariable=self.search_var, width=30)
+        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        self.search_entry.bind('<KeyRelease>', self.filter_plugins)
+        
+        # Right side - File Type Filter
+        filter_frame = ttk.Frame(search_frame)
+        filter_frame.pack(side=tk.RIGHT, fill=tk.X, padx=(10, 0))
+        
+        ttk.Label(filter_frame, text="File Type:").pack(side=tk.LEFT, padx=(0, 5))
+        self.file_types = ['All Types'] + sorted(list(set(ext.upper() for ext in self.plugin_extensions)))
+        self.file_type_var = tk.StringVar(value='All Types')
+        self.file_type_menu = ttk.Combobox(
+            filter_frame, 
+            textvariable=self.file_type_var, 
+            values=self.file_types,
+            state='readonly',
+            width=10
+        )
+        self.file_type_menu.pack(side=tk.LEFT, padx=(0, 5))
+        self.file_type_menu.bind('<<ComboboxSelected>>', self.filter_plugins)
+        
+        # Clear filters button
+        ttk.Button(
+            search_frame, 
+            text="Clear All", 
+            command=self.clear_filters,
+            style='TButton'
+        ).pack(side=tk.LEFT, padx=(10, 0))
+        
+        # Plugin list
+        self.tree_frame = ttk.Frame(main_frame)
+        self.tree_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
         
         # Create scrollbar
         scrollbar = ttk.Scrollbar(self.tree_frame)
@@ -182,7 +256,12 @@ class FLPluginRemover:
             self.tree_frame,
             columns=('Name', 'Type', 'Location'),
             show='headings',
+<<<<<<< HEAD
             yscrollcommand=scrollbar.set
+=======
+            yscrollcommand=scrollbar.set,
+            style='Treeview'
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
         )
         
         # Configure columns
@@ -197,6 +276,13 @@ class FLPluginRemover:
         self.tree.pack(fill=tk.BOTH, expand=True)
         scrollbar.config(command=self.tree.yview)
         
+<<<<<<< HEAD
+=======
+        # Store all items and types for filtering
+        self.all_items = []
+        self.plugin_types = set()
+        
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
         # Add selection handler
         self.tree.bind('<<TreeviewSelect>>', self.on_select)
         
@@ -225,11 +311,71 @@ class FLPluginRemover:
             self.root, 
             textvariable=self.status_var,
             relief=tk.SUNKEN, 
+<<<<<<< HEAD
             anchor=tk.W
+=======
+            anchor=tk.W,
+            font=('Segoe UI', 8)
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
         )
         self.status_bar.pack(fill=tk.X, side=tk.BOTTOM, ipady=2)
         self.status_var.set("Ready. Click 'Scan for Plugins' to begin.")
     
+<<<<<<< HEAD
+=======
+    def filter_plugins(self, event=None):
+        """Filter the treeview based on search text and file type."""
+        search_term = self.search_var.get().lower()
+        file_type = self.file_type_var.get()
+        
+        # If both search and file type are empty, show all items
+        if not search_term and file_type == "All Types":
+            for item in self.all_items:
+                self.tree.reattach(item, '', 'end')
+            self.status_var.set(f"Showing all {len(self.all_items)} plugins")
+            return
+            
+        visible_count = 0
+        
+        # First, hide all items
+        for item in self.all_items:
+            self.tree.detach(item)
+            
+        # Then show only matching items
+        for item in self.all_items:
+            values = self.tree.item(item, 'values')
+            if not values:
+                continue
+                
+            plugin_name = values[0].lower()
+            plugin_type = values[1].lower()
+            
+            # Check if item matches file type (if specified) and search term (if specified)
+            matches_type = (file_type == "All Types" or 
+                          file_type.lower() == plugin_type.lower())
+            matches_search = (not search_term or 
+                            search_term in plugin_name)
+            
+            if matches_type and (not search_term or matches_search):
+                self.tree.reattach(item, '', 'end')
+                visible_count += 1
+                
+        self.status_var.set(f"Showing {visible_count} of {len(self.all_items)} plugins")
+    
+    def clear_filters(self):
+        """Clear all filters and show all plugins."""
+        self.search_var.set('')
+        self.file_type_var.set('All Types')
+        self.filter_plugins()
+        self.search_entry.focus()
+    
+    def clear_search(self):
+        """Clear the search box and update filters."""
+        self.search_var.set('')
+        self.filter_plugins()
+        self.search_entry.focus()
+    
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
     def treeview_sort_column(self, col, reverse):
         """Sort tree contents when a column header is clicked."""
         # Get all items from the tree
@@ -248,12 +394,23 @@ class FLPluginRemover:
     def scan_plugins(self):
         """Scan for FL Studio plugins in common directories."""
         self.plugins = []
+<<<<<<< HEAD
         self.tree.delete(*self.tree.get_children())
+=======
+        self.all_items = []
+        self.plugin_types = set()
+        
+        # Clear the tree
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+            
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
         self.status_var.set("Scanning for plugins...")
         self.root.update()
         
         found_any = False
         
+<<<<<<< HEAD
         for plugin_dir in self.plugin_dirs:
             if os.path.exists(plugin_dir):
                 found_any = True
@@ -285,6 +442,52 @@ class FLPluginRemover:
                                 plugin_type,
                                 root_dir
                             ))
+=======
+        for root_dir in self.plugin_dirs:
+            if os.path.exists(root_dir):
+                found_any = True
+                for file in os.listdir(root_dir):
+                    # Get the file extension in lowercase without the dot
+                    file_ext = os.path.splitext(file)[1].lower()
+                    
+                    # Skip if not a plugin file
+                    if not any(file.lower().endswith(ext) for ext in self.plugin_extensions):
+                        continue
+                        
+                    plugin_path = os.path.join(root_dir, file)
+                    plugin_name = os.path.splitext(file)[0]
+                    plugin_type = file_ext.upper().lstrip('.')
+                    
+                    # Skip certain system files
+                    if any(skip in plugin_name.lower() for skip in ['unins', 'setup', 'install']):
+                        continue
+                        
+                    self.plugins.append({
+                        'name': plugin_name,
+                        'type': plugin_type,
+                        'path': plugin_path,
+                        'directory': root_dir
+                    })
+                    
+                    # Add to treeview
+                    item_id = self.tree.insert('', 'end', values=(
+                        plugin_name,
+                        plugin_type,
+                        plugin_path
+                    ))
+                    self.all_items.append(item_id)  # Store the item ID
+                    self.plugin_types.add(plugin_type)  # Track unique plugin types
+        
+        # Update the file type dropdown with found types
+        if hasattr(self, 'file_type_menu'):
+            current_type = self.file_type_var.get()
+            file_types = ['All Types'] + sorted(list(self.plugin_types))
+            self.file_type_menu['values'] = file_types
+            
+            # Reset to 'All Types' if the current selection is no longer valid
+            if current_type not in file_types:
+                self.file_type_var.set('All Types')
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
         
         if not found_any:
             self.status_var.set("No plugin directories found. You can manually add directories.")
@@ -292,7 +495,13 @@ class FLPluginRemover:
                                                   "You may need to manually add plugin directories.")
         else:
             self.status_var.set(f"Found {len(self.plugins)} plugins. Select one to remove.")
+<<<<<<< HEAD
     
+=======
+            
+        # Make sure all items are visible after scan
+        self.filter_plugins()
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
     def on_select(self, event):
         """Handle selection of a plugin in the treeview."""
         selected = self.tree.selection()
@@ -404,4 +613,8 @@ def main():
     root.mainloop()
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     main()
+=======
+    main()
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)

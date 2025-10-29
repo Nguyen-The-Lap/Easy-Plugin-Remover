@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # -*- mode: python ; coding: utf-8 -*-
 
 
@@ -37,3 +38,44 @@ exe = EXE(
     entitlements_file=None,
     icon='NONE',
 )
+=======
+# -*- mode: python ; coding: utf-8 -*-
+
+
+a = Analysis(
+    ['C:\\Users\\WINDOWS\\Downloads\\Easy-Plugin-Remover-stable\\Easy-Plugin-Remover-stable\\fl_plugin_remover.py'],
+    pathex=[],
+    binaries=[],
+    datas=[('C:\\Users\\WINDOWS\\Downloads\\Easy-Plugin-Remover-stable\\Easy-Plugin-Remover-stable\\fl_plugin_remover.py', '.')],
+    hiddenimports=[],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+    optimize=0,
+)
+pyz = PYZ(a.pure)
+
+exe = EXE(
+    pyz,
+    a.scripts,
+    a.binaries,
+    a.datas,
+    [],
+    name='Easy',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon=['C:\\Users\\WINDOWS\\Downloads\\Easy-Plugin-Remover-stable\\Easy-Plugin-Remover-stable\\icon.ico'],
+)
+>>>>>>> e4200e3 (feat: Enhance UI with improved icon and file type filtering)
